@@ -1,1 +1,48 @@
+Dockerfile for Wordpress:
 
+FROM php:7.4-apache
+
+ENV ARG DB_HOST
+   ARG DB_USER
+  ARG DB_PASSWORD
+  ARG DB_NAME
+
+COPY ./wordpress /var/www/html
+WORKDIR /var/www/html
+
+RUN docker-php-ext-install mysqli
+RUN apt-get update && apt-get install -y libpng-dev && apt-get clean
+RUN docker-php-ext-install gd
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+RUN a2enmod rewrite
+
+COPY ./apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+EXPOSE 80
+
+ENTRYPOINT ["docker-php-entrypoint"]
+
+CMD ["apache2-foreground"]
+
+
+2)let’s name it docker-compose.yml and save it with following content 
+
+version: "3"
+
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: my-rds-instance.c**********.us-east-1.rds.amazonaws.com
+      WORDPRESS_DB_USER: mani
+      WORDPRESS_DB_PASSWORD: mani123$$
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  wordpress_data:
